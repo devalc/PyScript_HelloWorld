@@ -30,7 +30,7 @@ import pandas as pd
 import seaborn as sns
 
 
-data = pd.read_csv('./data/Federal_Firefighting_Costs_Suppression_Only.csv')
+data = pd.read_csv("../data/Federal_Firefighting_Costs_Suppression_Only.csv")
 data['Year'] = pd.to_datetime(data['Year'] , format ='%Y')
 
 
