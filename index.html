@@ -6,36 +6,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css">
-    <!-- <script defer src="./pyscript.js"></script> -->
     <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    
+    
+    
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.2.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.2.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@holoviz/panel@0.13.0/dist/panel.min.js"></script>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
     <link rel="stylesheet" href="styles.css">
+
     <title>PyScript-HelloWorld</title>
+
     <py-env>
-- seaborn
+# Specify the libraries you will be using
 - pandas
-- matplotlib
+- panel
+- bokeh
+#This is how you can specify the path to your local data
+- paths:
+    - ./Federal_Firefighting_Costs_Suppression_Only.csv
     </py-env>
 </head>
 
 
 <body>
-    <h1 style="font-size: 2.5em">Exploring US Wildfires 🔥 & Federal Firefighting costs (Fire Suppressions only)</h1>
-    <br />
-        <p><h3>Data Source: <a href="https://www.kaggle.com/datasets/kkhandekar/total-wildfires-acres-affected-1983-2020">Kaggle</a></h3>
-    <div id="dashboard"></div>
     
-    <py-script output="dashboard">
-import matplotlib.pyplot as plt
+    <div class="container">
+        
+    <h1 style="font-size: 2.5em">Wildfires 🔥 & federal fire-fighting costs 💵(fire suppressions only) in the U.S.</h1>
+    
+        <p><h5>Data Source: <a href="https://www.kaggle.com/datasets/kkhandekar/total-wildfires-acres-affected-1983-2020">Kaggle</a></h5>
+    <!-- <div id="dashboard"></div> -->
+    
+    <div class="flex-body">
+        <div class="flex-column">
+            <div  id="plot1"></div>
+            <div  id="plot2"></div>
+        </div>
+        <div class="flex-column">
+          <div  id="plot3"></div>
+          <div  id="plot4"></div>
+        </div>
+        <br />
+    </div>
+
+
+    </div>
+    
+    
+    <py-script>
+# Import libraries like you do in any IDE you use
 import pandas as pd
-import seaborn as sns
-import os
-
-os.getcwd()
-<!-- data = pd.read_csv("../data/Federal_Firefighting_Costs_Suppression_Only.csv")
-data['Year'] = pd.to_datetime(data['Year'] , format ='%Y') -->
-
+import asyncio
+import panel as pn
+from bokeh.models import ColumnDataSource
+from bokeh.plotting import figure
+from panel.io.pyodide import show
 
 
+# Read in the data as pandas dataframe
+data = pd.read_csv("./Federal_Firefighting_Costs_Suppression_Only.csv")
+data['Year'] = pd.to_datetime(data['Year'] , format ='%Y')
+
+
+# Clean up data by removing special characters in all columns
+
+for feat in list(data.drop('Year', axis=1)):
+    data[feat] = data[feat].str.replace(',', '', regex=False)
+    data[feat] = data[feat].str.replace('$', '', regex=False)
+    data[feat] = pd.to_numeric(data[feat])
+
+# Calculate Acers burnt per fire over time
+data['Area (in acres) burnt per fire'] = data['Acres']/data['Fires'] 
+
+# Visualize
+
+cds = ColumnDataSource(data=ColumnDataSource.from_df(data))
+
+
+p1 = figure(height=400, width=600,x_axis_type="datetime", title = "Expenditure (USD)", title_location="above")
+p2 = figure(height=400, width=600,x_axis_type="datetime", title = "Wildfire from 1983 to 2020", title_location="above")
+p3 = figure(height=400, width=600,x_axis_type="datetime", title = "Area burnt (acers)", title_location="above")
+p4 = figure(height=400, width=600,x_axis_type="datetime", title = "Area burnt per fire (acres)", title_location="above")
+
+p1.line('Year', 'Total', source=cds, line_color='#7BC55F',legend_label="Total", line_width =3)
+p1.line('Year', 'DOIAgencies', source=cds, line_color='#6697EB',legend_label="DOI Agencies", line_width =3)
+p1.line('Year', 'ForestService', source=cds, line_color='#E5754C',legend_label="Forest Service", line_width =3)
+
+
+p2.line('Year', 'Fires',source=cds, line_color="#ef476f", line_width =3)
+p3.line('Year', 'Acres' ,source=cds, line_color="#72ddf7", line_width =3)
+p4.line('Year', 'Area (in acres) burnt per fire',source=cds, line_color="#9b5de5", line_width =3)
+
+p1.add_layout(p1.legend[0], 'right')
+p1.title.text_font_size = '18pt'
+p2.title.text_font_size = '18pt'
+p3.title.text_font_size = '18pt'
+p4.title.text_font_size = '18pt'
+p1.left[0].formatter.use_scientific = False
+p2.left[0].formatter.use_scientific = False
+p3.left[0].formatter.use_scientific = False
+p4.left[0].formatter.use_scientific = False
+
+# Display
+await show(p2, "plot1")
+await show(p3, "plot2") 
+await show(p4, "plot3") 
+await show(p1, "plot4")  
     </py-script>
 
 
