@@ -1,9 +1,30 @@
 body{ 
-    background-color: #95d5b2;
-    padding: 25px;
+    background-color: #9552;
     min-height: 100vh;
-    margin:0;
     display:flex;
     flex-direction:column;
-
 }
+
+.flex-row {
+    flex-direction: row;
+    display: flex;
+    margin: 12px;
+}
+
+.flex-column {
+    flex-direction: column;
+    display: flex;
+}
+
+.flex-body {
+    display: flex;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+.container{
+        margin: 10px auto;
+        width:100%;
+}
+
